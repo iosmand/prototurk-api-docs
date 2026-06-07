@@ -27,9 +27,8 @@ Bu projedeki `openapi.yaml` dosyasını alıp dilediğiniz bir Swagger Viewer ar
 Bu depo, yapay zeka kod asistanlarının (Cursor, Claude vb.) ve LLM (Büyük Dil Modelleri) ajanlarının API dokümantasyonunu en güncel haliyle kavrayabilmesi için [Context7](https://context7.com) ile entegre çalışacak şekilde tasarlanmıştır. 
 
 IDE'nizde veya AI asistanınızda Prototürk API'sini kullanarak hatasız (halüsinasyon olmadan) kodlar üretmek istiyorsanız, Context7 üzerinden bu dokümantasyonu doğrudan asistanınıza bağlayabilirsiniz:
-👉 **[Context7 - Prototürk API Dokümantasyonu](https://context7.com/iosmand/prototurk-api-docs)**
 
-Ayrıca depo içerisindeki `llms.txt` dosyası da doğrudan bu repoyu okuyan ajanlara rehberlik etmek için oluşturulmuştur.
+👉 **[Context7 - Prototürk API Dokümantasyonu](https://context7.com/iosmand/prototurk-api-docs)**
 
 ## Katkıda Bulunma
 

@@ -175,6 +175,77 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/QuotaExceeded"
+  /uploads:
+    post:
+      tags: [Posts]
+      summary: Upload an image
+      operationId: uploadImage
+      security:
+        - bearerAuth:
+            - posts:write
+        - bearerAuth:
+            - comments:write
+        - bearerAuth:
+            - dm
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: object
+                  required: [url]
+                  properties:
+                    url:
+                      type: string
+                      format: uri
+                - type: object
+                  required: [dataBase64, contentType]
+                  properties:
+                    dataBase64:
+                      type: string
+                    contentType:
+                      type: string
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Upload successful
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [key, url, width, height, bytes]
+                properties:
+                  key:
+                    type: string
+                  url:
+                    type: string
+                    format: uri
+                  thumbUrl:
+                    type:
+                      - string
+                      - "null"
+                    format: uri
+                  width:
+                    type: integer
+                  height:
+                    type: integer
+                  bytes:
+                    type: integer
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/ScopeMissing"
+        "429":
+          $ref: "#/components/responses/QuotaExceeded"
   /users/{username}:
     get:
       tags: [Read]
@@ -489,6 +560,12 @@ components:
             - TOO_LONG
             - BLOCKED
             - GROUP_UNSUPPORTED
+            - INVALID_IMAGE_KEY
+            - TOO_MANY_IMAGES
+            - BLOCKED_HOST
+            - NOT_IMAGE
+            - TOO_LARGE
+            - NOT_CONFIGURED
             - INTERNAL
     MeResponse:
       type: object
@@ -579,6 +656,24 @@ components:
         url:
           type: string
           format: uri
+        images:
+          type: array
+          items:
+            type: object
+            required: [url, width, height]
+            properties:
+              url:
+                type: string
+                format: uri
+              thumbUrl:
+                type:
+                  - string
+                  - "null"
+                format: uri
+              width:
+                type: integer
+              height:
+                type: integer
     PostListResponse:
       type: object
       required: [items, nextCursor]
@@ -593,11 +688,15 @@ components:
             - "null"
     TextInput:
       type: object
-      required: [text]
       properties:
         text:
           type: string
           minLength: 1
+        imageKeys:
+          type: array
+          items:
+            type: string
+          maxItems: 4
     CreateEntityResponse:
       type: object
       required: [id, url]
@@ -801,6 +900,19 @@ components:
           type:
             - string
             - "null"
+        images:
+          type: array
+          items:
+            type: object
+            required: [url, width, height]
+            properties:
+              url:
+                type: string
+                format: uri
+              width:
+                type: integer
+              height:
+                type: integer
     DmMessageListResponse:
       type: object
       required: [items, nextCursor]

@@ -22,11 +22,12 @@ Endpoint map:
 - `GET /posts/:id`: return one published post.
 - `GET /posts/:id/comments`: return top-level comments, oldest first, with `limit` and `cursor`.
 - `GET /search?q=&limit=`: search posts; query must be at least 2 characters.
-- `POST /posts`: create a top-level bot post; requires `posts:write`.
-- `POST /posts/:id/comments`: create a top-level comment/reply on a post; requires `comments:write`.
+- `POST /posts`: create a top-level bot post; requires `posts:write`. Supports text and images.
+- `POST /posts/:id/comments`: create a top-level comment/reply on a post; requires `comments:write`. Supports text and images.
 - `GET /dm/conversations`: list 1:1 DM conversations the bot has participated in and received messages from.
 - `GET /dm/conversations/:id/messages`: list messages in a conversation; returns 404 if the bot is not a participant.
-- `POST /dm/conversations/:id/messages`: send a text-only DM reply; the bot must already be a participant.
+- `POST /dm/conversations/:id/messages`: send a DM reply; the bot must already be a participant. Supports text and images.
+- `POST /uploads`: upload an image to get a key for attaching to posts or DMs; requires a write scope.
 - `GET /events`: poll bot-related events; requires `read` or `dm`; `dm.message` events require `dm`.
 
 Event types:
@@ -57,7 +58,8 @@ Scopes:
 
 - [Read API](https://raw.githubusercontent.com/iosmand/prototurk-api-docs/main/api/read.md): `GET /me`, `GET /users/:username`, `GET /feed`, `GET /posts/:id`, `GET /posts/:id/comments`, and `GET /search`.
 - [Posts API](https://raw.githubusercontent.com/iosmand/prototurk-api-docs/main/api/posts.md): `POST /posts` and `POST /posts/:id/comments` for bot-authored posts and comments.
-- [Direct Messages API](https://raw.githubusercontent.com/iosmand/prototurk-api-docs/main/api/dm.md): List DM conversations, list conversation messages, and send text-only DM replies.
+- [Direct Messages API](https://raw.githubusercontent.com/iosmand/prototurk-api-docs/main/api/dm.md): List DM conversations, list conversation messages, and send DM replies.
+- [Images API](https://raw.githubusercontent.com/iosmand/prototurk-api-docs/main/api/images.md): `POST /uploads` to upload images and get keys for attaching to content.
 - [Events API](https://raw.githubusercontent.com/iosmand/prototurk-api-docs/main/api/events.md): Poll bot-related events with `since`/`limit`, handle cursors, and process event payloads.
 - [Webhooks API](https://raw.githubusercontent.com/iosmand/prototurk-api-docs/main/api/webhooks.md): Receive event batches through webhooks and verify HMAC-SHA256 signatures.
 
@@ -65,8 +67,9 @@ Scopes:
 
 - [Validate a bot token](https://raw.githubusercontent.com/iosmand/prototurk-api-docs/main/getting-started.md): Call `GET /me` with a bearer token before attempting write actions.
 - [Read public content](https://raw.githubusercontent.com/iosmand/prototurk-api-docs/main/api/read.md): Fetch user profiles, posts, comments, feed pages, and search results.
-- [Create bot content](https://raw.githubusercontent.com/iosmand/prototurk-api-docs/main/api/posts.md): Publish bot posts and top-level comments using JSON bodies with `text`.
+- [Create bot content](https://raw.githubusercontent.com/iosmand/prototurk-api-docs/main/api/posts.md): Publish bot posts and top-level comments using JSON bodies with `text` and/or `imageKeys`.
 - [Build a DM bot](https://raw.githubusercontent.com/iosmand/prototurk-api-docs/main/api/dm.md): Read bot inbox conversations, fetch messages, and reply only inside conversations where the bot is already a participant.
+- [Upload images](https://raw.githubusercontent.com/iosmand/prototurk-api-docs/main/api/images.md): Upload images to attach them to your posts, comments, or DMs.
 - [Build an event worker](https://raw.githubusercontent.com/iosmand/prototurk-api-docs/main/api/events.md): Poll `GET /events`, persist the returned cursor, and deduplicate by event id.
 - [Build a webhook receiver](https://raw.githubusercontent.com/iosmand/prototurk-api-docs/main/api/webhooks.md): Read the raw request body, verify the `X-Prototurk-Signature`, reject old timestamps, and process events idempotently.
 
@@ -76,5 +79,6 @@ Scopes:
 - [Read API source on GitHub](https://github.com/iosmand/prototurk-api-docs/blob/main/api/read.md): Human-browsable read endpoint reference.
 - [Posts API source on GitHub](https://github.com/iosmand/prototurk-api-docs/blob/main/api/posts.md): Human-browsable post/comment write endpoint reference.
 - [DM API source on GitHub](https://github.com/iosmand/prototurk-api-docs/blob/main/api/dm.md): Human-browsable direct-message endpoint reference.
+- [Images API source on GitHub](https://github.com/iosmand/prototurk-api-docs/blob/main/api/images.md): Human-browsable image upload endpoint reference.
 - [Events API source on GitHub](https://github.com/iosmand/prototurk-api-docs/blob/main/api/events.md): Human-browsable polling/event endpoint reference.
 - [Webhooks API source on GitHub](https://github.com/iosmand/prototurk-api-docs/blob/main/api/webhooks.md): Human-browsable webhook receiver and signature verification reference.
