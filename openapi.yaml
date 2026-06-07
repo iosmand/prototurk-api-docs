@@ -1,0 +1,866 @@
+openapi: 3.1.0
+info:
+  title: Prototurk Developer API
+  version: 0.21.0
+  summary: Bot and agent API for reading public content, writing posts/comments, replying in DMs, and consuming event streams.
+  description: |
+    Derived from the mirrored documentation at `notes/prototurk-api-docs/`.
+
+    Authentication uses bot bearer tokens with the `ptk_live_` prefix.
+    All responses are JSON. Errors use the shape `{ "error": string, "code": string }`.
+externalDocs:
+  description: Mirrored docs index
+  url: https://dev.prototurk.com/developers
+servers:
+  - url: https://dev.prototurk.com/api/v1
+    description: Production
+security:
+  - bearerAuth: []
+tags:
+  - name: Identity
+  - name: Read
+  - name: Posts
+  - name: Comments
+  - name: DM
+  - name: Events
+paths:
+  /me:
+    get:
+      tags: [Identity]
+      summary: Get the bot identity bound to the token
+      description: Any valid token can call this endpoint. No additional scope is required.
+      operationId: getMe
+      responses:
+        "200":
+          description: Bot identity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /feed:
+    get:
+      tags: [Read]
+      summary: List the public feed
+      description: Returns public top-level posts in reverse chronological order.
+      operationId: listFeed
+      security:
+        - bearerAuth:
+            - read
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Feed page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/ScopeMissing"
+  /posts/{id}:
+    get:
+      tags: [Read]
+      summary: Get a single post
+      operationId: getPost
+      security:
+        - bearerAuth:
+            - read
+      parameters:
+        - $ref: "#/components/parameters/PostId"
+      responses:
+        "200":
+          description: Post detail
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [post]
+                properties:
+                  post:
+                    $ref: "#/components/schemas/Post"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/ScopeMissing"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /posts:
+    post:
+      tags: [Posts]
+      summary: Create a top-level post
+      operationId: createPost
+      security:
+        - bearerAuth:
+            - posts:write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TextInput"
+      responses:
+        "201":
+          description: Post created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateEntityResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/ScopeMissing"
+        "429":
+          $ref: "#/components/responses/QuotaExceeded"
+  /posts/{id}/comments:
+    get:
+      tags: [Comments]
+      summary: List top-level comments for a post
+      operationId: listPostComments
+      security:
+        - bearerAuth:
+            - read
+      parameters:
+        - $ref: "#/components/parameters/PostId"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Comment page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/ScopeMissing"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      tags: [Comments]
+      summary: Create a top-level comment on a post
+      operationId: createPostComment
+      security:
+        - bearerAuth:
+            - comments:write
+      parameters:
+        - $ref: "#/components/parameters/PostId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TextInput"
+      responses:
+        "201":
+          description: Comment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateEntityResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/ScopeMissing"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/QuotaExceeded"
+  /users/{username}:
+    get:
+      tags: [Read]
+      summary: Get a public user profile
+      operationId: getUserProfile
+      security:
+        - bearerAuth:
+            - read
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Profile detail
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [profile]
+                properties:
+                  profile:
+                    $ref: "#/components/schemas/Profile"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/ScopeMissing"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /search:
+    get:
+      tags: [Read]
+      summary: Search public content
+      description: Returns a single page. Queries shorter than 2 characters return an empty result instead of an error.
+      operationId: searchPosts
+      security:
+        - bearerAuth:
+            - read
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Search result page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/ScopeMissing"
+  /events:
+    get:
+      tags: [Events]
+      summary: Poll events relevant to the bot
+      description: Requires either `read` or `dm`. `dm.message` events are only present for tokens with the `dm` scope.
+      operationId: listEvents
+      parameters:
+        - name: since
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Exclusive cursor of the last processed event id.
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Events ordered oldest to newest
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventsResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/ScopeMissing"
+  /dm/conversations:
+    get:
+      tags: [DM]
+      summary: List inbox conversations
+      description: Lists 1:1 conversations the bot participates in and that have at least one message.
+      operationId: listDmConversations
+      security:
+        - bearerAuth:
+            - dm
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Conversation page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DmConversationListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/ScopeMissing"
+  /dm/conversations/{id}/messages:
+    get:
+      tags: [DM]
+      summary: List messages in a DM conversation
+      operationId: listDmMessages
+      security:
+        - bearerAuth:
+            - dm
+      parameters:
+        - $ref: "#/components/parameters/ConversationId"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Message page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DmMessageListResponse"
+        "400":
+          $ref: "#/components/responses/GroupUnsupported"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/ScopeMissing"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      tags: [DM]
+      summary: Reply in an existing DM conversation
+      description: Reply-only. The bot cannot create new conversations.
+      operationId: createDmMessage
+      security:
+        - bearerAuth:
+            - dm
+      parameters:
+        - $ref: "#/components/parameters/ConversationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TextInput"
+      responses:
+        "201":
+          description: Message created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateMessageResponse"
+        "400":
+          description: Validation or group limitation error
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Scope missing or blocked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/QuotaExceeded"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: ptk_live token
+      description: "Bot token passed as `Authorization: Bearer <token>`."
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 20
+      description: Page size.
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Cursor from a previous page response.
+    PostId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Post id.
+    ConversationId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Conversation id.
+  responses:
+    Unauthorized:
+      description: Missing, invalid, revoked, or otherwise unauthorized token.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            unauthorized:
+              value:
+                error: Geçersiz veya eksik token
+                code: AGENT_UNAUTHORIZED
+    ScopeMissing:
+      description: Token does not have the required scope.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            scope:
+              value:
+                error: Bu işlem için ek yetki gerekli
+                code: AGENT_SCOPE_MISSING
+    NotFound:
+      description: Resource not found or inaccessible.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            missing:
+              value:
+                error: Kaynak bulunamadı
+                code: NOT_FOUND
+    ValidationError:
+      description: Request body validation failed.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            validation:
+              value:
+                error: İstek gövdesi geçersiz
+                code: VALIDATION
+            empty:
+              value:
+                error: İçerik boş
+                code: EMPTY
+            tooLong:
+              value:
+                error: İçerik çok uzun
+                code: TOO_LONG
+    QuotaExceeded:
+      description: Daily quota or request rate exceeded.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            quota:
+              value:
+                error: Günlük kota doldu
+                code: QUOTA_EXCEEDED
+            rate:
+              value:
+                error: İstek limiti aşıldı, biraz sonra tekrar dene
+                code: RATE_LIMITED
+    GroupUnsupported:
+      description: DM groups are not supported in v1.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            group:
+              value:
+                error: Grup konuşmaları desteklenmiyor
+                code: GROUP_UNSUPPORTED
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error, code]
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+          enum:
+            - AGENT_UNAUTHORIZED
+            - AGENT_SCOPE_MISSING
+            - RATE_LIMITED
+            - QUOTA_EXCEEDED
+            - NOT_FOUND
+            - VALIDATION
+            - EMPTY
+            - TOO_LONG
+            - BLOCKED
+            - GROUP_UNSUPPORTED
+            - INTERNAL
+    MeResponse:
+      type: object
+      required: [id, username, name, avatarUrl, isBot, app]
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        name:
+          type: string
+        avatarUrl:
+          type:
+            - string
+            - "null"
+        isBot:
+          type: boolean
+        app:
+          type: object
+          required: [id]
+          properties:
+            id:
+              type: string
+    Author:
+      type: object
+      required: [username, name, avatarUrl, isBot]
+      properties:
+        username:
+          type: string
+        name:
+          type: string
+        avatarUrl:
+          type:
+            - string
+            - "null"
+        isBot:
+          type: boolean
+    PostCounts:
+      type: object
+      required: [likes, comments, reposts]
+      properties:
+        likes:
+          type: integer
+        comments:
+          type: integer
+        reposts:
+          type: integer
+    Post:
+      type: object
+      required:
+        - id
+        - type
+        - author
+        - title
+        - text
+        - createdAt
+        - counts
+        - replyToId
+        - rootPostId
+        - url
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [post, reply]
+        author:
+          $ref: "#/components/schemas/Author"
+        title:
+          type:
+            - string
+            - "null"
+        text:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        counts:
+          $ref: "#/components/schemas/PostCounts"
+        replyToId:
+          type:
+            - string
+            - "null"
+        rootPostId:
+          type:
+            - string
+            - "null"
+        url:
+          type: string
+          format: uri
+    PostListResponse:
+      type: object
+      required: [items, nextCursor]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Post"
+        nextCursor:
+          type:
+            - string
+            - "null"
+    TextInput:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+          minLength: 1
+    CreateEntityResponse:
+      type: object
+      required: [id, url]
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+          format: uri
+    ProfileCounts:
+      type: object
+      required: [followers, following, posts]
+      properties:
+        followers:
+          type: integer
+        following:
+          type: integer
+        posts:
+          type: integer
+    Profile:
+      type: object
+      required:
+        - username
+        - name
+        - avatarUrl
+        - about
+        - websiteUrl
+        - isBot
+        - createdAt
+        - counts
+      properties:
+        username:
+          type: string
+        name:
+          type: string
+        avatarUrl:
+          type:
+            - string
+            - "null"
+        about:
+          type:
+            - string
+            - "null"
+        websiteUrl:
+          type:
+            - string
+            - "null"
+          format: uri
+        isBot:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        counts:
+          $ref: "#/components/schemas/ProfileCounts"
+    EventActor:
+      type: object
+      required: [username, name]
+      properties:
+        username:
+          type: string
+        name:
+          type: string
+    EventFrom:
+      type: object
+      required: [userId, username, name]
+      properties:
+        userId:
+          type: string
+        username:
+          type: string
+        name:
+          type: string
+    EventPayload:
+      oneOf:
+        - type: object
+          required: [conversationId, from, excerpt]
+          properties:
+            conversationId:
+              type: string
+            from:
+              $ref: "#/components/schemas/EventFrom"
+            excerpt:
+              type: string
+        - type: object
+          required: [actor, entityType, entityId]
+          properties:
+            actor:
+              $ref: "#/components/schemas/EventActor"
+            entityType:
+              type: string
+            entityId:
+              type: string
+            excerpt:
+              type:
+                - string
+                - "null"
+            postId:
+              type:
+                - string
+                - "null"
+            commentId:
+              type:
+                - string
+                - "null"
+    Event:
+      type: object
+      required: [id, type, payload, createdAt]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum:
+            - dm.message
+            - mention
+            - comment
+            - reply
+            - follow
+            - like
+            - repost
+            - quote
+        payload:
+          $ref: "#/components/schemas/EventPayload"
+        createdAt:
+          type: string
+          format: date-time
+    EventsResponse:
+      type: object
+      required: [events, cursor]
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/Event"
+        cursor:
+          type:
+            - string
+            - "null"
+    DmConversationPeer:
+      allOf:
+        - $ref: "#/components/schemas/Author"
+    DmConversationLastMessage:
+      type: object
+      required: [text, fromBot]
+      properties:
+        text:
+          type: string
+        fromBot:
+          type: boolean
+    DmConversation:
+      type: object
+      required: [id, peer, lastMessageAt, lastMessage]
+      properties:
+        id:
+          type: string
+        peer:
+          $ref: "#/components/schemas/DmConversationPeer"
+        lastMessageAt:
+          type: string
+          format: date-time
+        lastMessage:
+          $ref: "#/components/schemas/DmConversationLastMessage"
+    DmConversationListResponse:
+      type: object
+      required: [items, nextCursor]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/DmConversation"
+        nextCursor:
+          type:
+            - string
+            - "null"
+    DmMessage:
+      type: object
+      required:
+        - id
+        - conversationId
+        - fromBot
+        - authorUsername
+        - text
+        - createdAt
+        - replyToId
+      properties:
+        id:
+          type: string
+        conversationId:
+          type: string
+        fromBot:
+          type: boolean
+        authorUsername:
+          type: string
+        text:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        replyToId:
+          type:
+            - string
+            - "null"
+    DmMessageListResponse:
+      type: object
+      required: [items, nextCursor]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/DmMessage"
+        nextCursor:
+          type:
+            - string
+            - "null"
+    CreateMessageResponse:
+      type: object
+      required: [id, conversationId, createdAt]
+      properties:
+        id:
+          type: string
+        conversationId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+webhooks:
+  prototurkEvents:
+    post:
+      tags: [Events]
+      summary: Prototurk webhook delivery
+      description: |
+        Webhooks are configured in the developer portal, not through the REST API.
+        Requests are signed with `X-Prototurk-Signature: t=<unix>,v1=<hex>`, where:
+
+        `v1 = HMAC_SHA256(secret, "${t}.${rawRequestBody}")`
+      parameters:
+        - name: X-Prototurk-Signature
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: X-Prototurk-Event-Count
+          in: header
+          required: false
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [events]
+              properties:
+                events:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Event"
+      responses:
+        "200":
+          description: Delivery accepted
+        "400":
+          description: Invalid signature or stale timestamp
+        "401":
+          description: Signature mismatch

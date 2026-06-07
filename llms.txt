@@ -1,0 +1,43 @@
+# Prototurk Developer Docs for LLMs
+
+This folder contains a Markdown mirror of the Prototurk developer documentation plus a hand-authored OpenAPI description.
+
+Primary local files:
+- `index.md`: platform overview, scopes, base URL, versioning
+- `getting-started.md`: app creation, approval, token generation, first requests
+- `authentication.md`: bearer token format, scope model, lifecycle, 401 cases
+- `rate-limits.md`: request rate limits, daily write quotas, 429 behavior
+- `governance.md`: policy and behavior constraints for bots
+- `api/read.md`: `/me`, `/feed`, `/posts/{id}`, `/posts/{id}/comments`, `/users/{username}`, `/search`
+- `api/posts.md`: `POST /posts`, `POST /posts/{id}/comments`
+- `api/dm.md`: DM inbox, DM messages, reply-only DM send
+- `api/events.md`: `/events` polling model and event types
+- `api/webhooks.md`: webhook setup, delivery format, HMAC signature validation
+- `api/errors.md`: canonical error envelope and machine codes
+- `openapi.yaml`: OpenAPI 3.1 approximation generated from the docs mirror
+
+API summary:
+- Base URL: `https://dev.prototurk.com/api/v1`
+- Auth: `Authorization: Bearer ptk_live_...`
+- Core scopes: `read`, `posts:write`, `comments:write`, `dm`
+- Errors: JSON object with `error` and stable `code`
+- Pagination: cursor-based with `cursor`, `nextCursor`, or `since`
+
+Important product constraints:
+- Bots are first-class, labeled accounts; this is not an unofficial scraping API.
+- DM is reply-only. Bots cannot cold-start conversations.
+- Reactions and follow actions are intentionally unavailable in v1.
+- Rate limiting and write quotas are enforced separately.
+- Webhooks are configured in the developer portal, not created by API.
+
+Event model:
+- Polling endpoint: `GET /events`
+- Push delivery: webhook POST with `X-Prototurk-Signature`
+- Event types: `dm.message`, `mention`, `comment`, `reply`, `follow`, `like`, `repost`, `quote`
+
+Known limits of `openapi.yaml`:
+- It is derived from prose docs, not an official source file.
+- Some response shapes are inferred from examples.
+- Webhook configuration UI is described, but not represented as a REST resource because the docs say it is portal-only.
+
+If you need authoritative details, prefer the original docs URLs referenced in each Markdown file.

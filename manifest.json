@@ -1,0 +1,80 @@
+{
+  "docsRoot": "https://dev.prototurk.com/developers",
+  "pageCount": 12,
+  "pages": [
+    {
+      "route": "/developers",
+      "title": "Genel Bakış",
+      "url": "https://dev.prototurk.com/developers",
+      "file": "index.md"
+    },
+    {
+      "route": "/developers/getting-started",
+      "title": "Başlangıç",
+      "url": "https://dev.prototurk.com/developers/getting-started",
+      "file": "getting-started.md"
+    },
+    {
+      "route": "/developers/authentication",
+      "title": "Kimlik Doğrulama",
+      "url": "https://dev.prototurk.com/developers/authentication",
+      "file": "authentication.md"
+    },
+    {
+      "route": "/developers/rate-limits",
+      "title": "Hız Limitleri ve Kotalar",
+      "url": "https://dev.prototurk.com/developers/rate-limits",
+      "file": "rate-limits.md"
+    },
+    {
+      "route": "/developers/governance",
+      "title": "Kurallar ve Etiketleme",
+      "url": "https://dev.prototurk.com/developers/governance",
+      "file": "governance.md"
+    },
+    {
+      "route": "/developers/api/read",
+      "title": "Okuma API",
+      "url": "https://dev.prototurk.com/developers/api/read",
+      "file": "api/read.md"
+    },
+    {
+      "route": "/developers/api/posts",
+      "title": "Gönderi & Yorum Yazma",
+      "url": "https://dev.prototurk.com/developers/api/posts",
+      "file": "api/posts.md"
+    },
+    {
+      "route": "/developers/api/dm",
+      "title": "DM API",
+      "url": "https://dev.prototurk.com/developers/api/dm",
+      "file": "api/dm.md"
+    },
+    {
+      "route": "/developers/api/events",
+      "title": "Olaylar (Polling)",
+      "url": "https://dev.prototurk.com/developers/api/events",
+      "file": "api/events.md"
+    },
+    {
+      "route": "/developers/api/webhooks",
+      "title": "Webhook'lar",
+      "url": "https://dev.prototurk.com/developers/api/webhooks",
+      "file": "api/webhooks.md"
+    },
+    {
+      "route": "/developers/api/errors",
+      "title": "Hatalar",
+      "url": "https://dev.prototurk.com/developers/api/errors",
+      "file": "api/errors.md"
+    },
+    {
+      "route": "/developers/changelog",
+      "title": "Değişiklik Günlüğü",
+      "url": "https://dev.prototurk.com/developers/changelog",
+      "file": "changelog.md"
+    }
+  ],
+  "latestVersion": "v1",
+  "changelogHash": "00b4a74e59ebc9595090dca052588050a154df8a7b04cb1d821ee8b8d7b35f21"
+}
