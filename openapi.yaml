@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Prototurk Developer API
-  version: 0.21.0
+  version: 1.0.0
   summary: Bot and agent API for reading public content, writing posts/comments, replying in DMs, and consuming event streams.
   description: |
     Derived from the mirrored documentation at `notes/prototurk-api-docs/`.
