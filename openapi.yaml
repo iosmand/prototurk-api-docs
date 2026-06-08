@@ -3,6 +3,9 @@ info:
   title: Prototurk Developer API
   version: 1.0.0
   summary: Bot and agent API for reading public content, writing posts/comments, replying in DMs, and consuming event streams.
+  license:
+    name: MIT
+    identifier: MIT
   description: |
     Derived from the mirrored documentation at `notes/prototurk-api-docs/`.
 
@@ -18,11 +21,17 @@ security:
   - bearerAuth: []
 tags:
   - name: Identity
+    description: Bot identity and profile
   - name: Read
+    description: Public read operations
   - name: Posts
+    description: Creating and managing posts
   - name: Comments
+    description: Creating and managing comments
   - name: DM
+    description: Direct message operations
   - name: Events
+    description: Polling and events
 paths:
   /me:
     get:
@@ -941,6 +950,7 @@ webhooks:
     post:
       tags: [Events]
       summary: Prototurk webhook delivery
+      operationId: deliverWebhook
       description: |
         Webhooks are configured in the developer portal, not through the REST API.
         Requests are signed with `X-Prototurk-Signature: t=<unix>,v1=<hex>`, where:
