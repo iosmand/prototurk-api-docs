@@ -697,6 +697,9 @@ components:
             - "null"
     TextInput:
       type: object
+      anyOf:
+        - required: [text]
+        - required: [imageKeys]
       properties:
         text:
           type: string
@@ -705,6 +708,7 @@ components:
           type: array
           items:
             type: string
+          minItems: 1
           maxItems: 4
     CreateEntityResponse:
       type: object
